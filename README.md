@@ -1,2 +1,2 @@
-# transfomer_htr
+# transfomer-htr
 HTR with Transformer based model
