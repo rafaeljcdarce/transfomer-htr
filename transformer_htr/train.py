@@ -7,6 +7,8 @@ from torch.optim import Adam
 from torch import nonzero, no_grad, save
 from .data import HtrDataset
 import numpy as np
+from torch.autograd import Variable
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 class NoamOpt:
@@ -55,7 +57,7 @@ class LabelSmoothing(Module):
         true_dist.fill_(self.smoothing / (self.size - 2))
         true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
         true_dist[:, self.padding_idx] = 0
-        mask = torch.nonzero(target.data == self.padding_idx)
+        mask = nonzero(target.data == self.padding_idx)
         if mask.dim() > 0:
             true_dist.index_fill_(0, mask.squeeze(), 0.0)
         self.true_dist = true_dist
@@ -79,14 +81,14 @@ class SimpleLossCompute:
             self.opt.optimizer.zero_grad()
         return loss.data * norm
 
-def run_epoch(dataloader, model, loss_compute):
+def run_epoch(dataloader, model, loss_compute, cuda=False):
     "Standard Training and Logging Function"
     start = time.time()
     total_tokens = 0
     total_loss = 0
     tokens = 0
     for i, (imgs,  labels_y, labels) in enumerate(dataloader):
-        batch = Batch(imgs, labels, labels_y)
+        batch = Batch(imgs, labels, labels_y, cuda=cuda)
         out = model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)
         loss = loss_compute(out, batch.trg_y, batch.ntokens)
         total_loss += loss
@@ -101,9 +103,9 @@ def run_epoch(dataloader, model, loss_compute):
     return total_loss / total_tokens
 
 
-def train(batch_size = 25, cuda=False):
-    train_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=True, num_workers=0)
-    val_dataloader = DataLoader(HtrDataset(pt='valid'), batch_size=batch_size, shuffle=False, num_workers=0)
+def train(batch_size = 1, cuda=False):
+    train_dataloader = DataLoader(HtrDataset(cuda=True), batch_size=batch_size, shuffle=True, num_workers=0)
+    val_dataloader = DataLoader(HtrDataset(cuda=True), batch_size=batch_size, shuffle=False, num_workers=0)
     model = TransformerHtr(97)
     criterion = LabelSmoothing(size=97, padding_idx=0, smoothing=0.1)
     if cuda:
@@ -114,11 +116,11 @@ def train(batch_size = 25, cuda=False):
     for epoch in range(1):
         model.train()
         run_epoch(train_dataloader, model, 
-              SimpleLossCompute(model.generator, criterion, model_opt))
+              SimpleLossCompute(model.generator, criterion, model_opt), cuda=cuda)
         model.eval()
-        with torch.no_grad():
+        with no_grad():
             test_loss = run_epoch(val_dataloader, model, 
-                  SimpleLossCompute(model.generator, criterion, None))
+                  SimpleLossCompute(model.generator, criterion, None), cuda=cuda)
             print("test_loss", test_loss)
-        torch.save(model.state_dict(), '%08d_%f.pth'%(epoch, test_loss))
+        save(model.state_dict(), '%08d_%f.pth'%(epoch, test_loss))
     return model

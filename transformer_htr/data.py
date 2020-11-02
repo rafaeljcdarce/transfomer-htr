@@ -7,11 +7,12 @@ from torch import from_numpy
 from torch.autograd import Variable
 from .tool import subsequent_mask
 class HtrDataset(Dataset):
-    def __init__(self, source='iam', pt='train'):
+    def __init__(self, source='iam', pt='train', cuda=False):
 
         #pt = ['train', 'valid', 'test']
         self.tokenizer = Tokenizer()
         self.dataset = dict()
+        self.cuda = cuda
         source = os.path.join(f"{source}.hdf5")
         with h5py.File(source, "r") as f:
             self.dataset['img'] = np.array(f[pt]['dt'])
@@ -37,6 +38,9 @@ class HtrDataset(Dataset):
         img= np.transpose(img, (2, 0, 1))
         img = from_numpy(img).float()
         label = self.tokenizer.encode(string)
+        if self.cuda:
+            img=img.cuda()
+            label=label.cuda()
         label_y = label[1:]
         label = label[:-1]
         return img, label_y, label
