@@ -44,7 +44,6 @@ class HtrDataset(Dataset):
             label=label.cuda()
         label_y = label[1:]
         label = label[:-1]
-        print('dataset', type(img))
         return img, label_y, label
 
 class Batch:
@@ -56,7 +55,6 @@ class Batch:
             trg=trg.cuda()
             trg_y=trg_y.cuda()
             self.src_mask = self.src_mask.cuda()
-        print('batch', type(imgs))
 
         self.src = Variable(imgs, requires_grad=False)
         if trg is not None:
