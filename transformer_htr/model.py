@@ -231,7 +231,6 @@ class VisualEmbeddings(nn.Module):
       self.d_model = f
 
     def forward(self, x):
-        print(type(x))
         x = self.resnet(x)
         b = x.size(0)
         c = x.size(1)
