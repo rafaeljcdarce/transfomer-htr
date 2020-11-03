@@ -230,15 +230,11 @@ class VisualEmbeddings(nn.Module):
       self.d_model = f
 
     def forward(self, x):
-    # for name, module in self.resnet._modules.items():
-        print(x.shape)
+        print(type(x))
         x = self.resnet(x)
-        print(x.shape)
-        # if name =='layer3':
         b = x.size(0)
         c = x.size(1)
         x=self.fc( x.view(b, c, -1).permute(0, 2, 1) )
-        print(x.shape)
         return x
 
 def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8, dropout=0.1, cuda=False):
