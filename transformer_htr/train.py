@@ -104,10 +104,11 @@ def run_epoch(dataloader, model, loss_compute):
     return total_loss / total_tokens
 
 
-def train(src='iam', batch_size = 1, epochs=1):
+def train(model=None, src='iam', batch_size = 1, epochs=1):
     train_dataloader = DataLoader(HtrDataset(source=src), batch_size=batch_size, shuffle=True, num_workers=0)
     # val_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=False, num_workers=0)
-    model = TransformerHtr(97)
+    if model is None:
+        model = TransformerHtr(97)
     criterion = LabelSmoothing(size=97, padding_idx=0, smoothing=0.1)
     if cuda.is_available():
         model.cuda()
