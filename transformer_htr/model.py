@@ -243,7 +243,7 @@ def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8,
     c = copy.deepcopy
     resnet = resnet50(pretrained=True)
     if cuda.is_available():
-        reresnet.cuda()
+        resnet.cuda()
     attn = MultiHeadedAttention(h, d_model)
     ff = PositionwiseFeedForward(d_model, d_ff, dropout)
     position = PositionalEncoding(d_model, dropout)
