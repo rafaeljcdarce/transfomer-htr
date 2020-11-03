@@ -8,6 +8,7 @@ from torch import nonzero, no_grad, save
 from .data import HtrDataset
 import numpy as np
 from torch.autograd import Variable
+from torch import cuda
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -81,14 +82,14 @@ class SimpleLossCompute:
             self.opt.optimizer.zero_grad()
         return loss.data * norm
 
-def run_epoch(dataloader, model, loss_compute, cuda=False):
+def run_epoch(dataloader, model, loss_compute):
     "Standard Training and Logging Function"
     start = time.time()
     total_tokens = 0
     total_loss = 0
     tokens = 0
     for i, (imgs,  labels_y, labels) in enumerate(dataloader):
-        batch = Batch(imgs, labels, labels_y, cuda=cuda)
+        batch = Batch(imgs, labels, labels_y)
         out = model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)
         loss = loss_compute(out, batch.trg_y, batch.ntokens)
         total_loss += loss
@@ -103,24 +104,23 @@ def run_epoch(dataloader, model, loss_compute, cuda=False):
     return total_loss / total_tokens
 
 
-def train(batch_size = 1, cuda=False):
-    train_dataloader = DataLoader(HtrDataset(cuda=True), batch_size=batch_size, shuffle=True, num_workers=0)
-    val_dataloader = DataLoader(HtrDataset(cuda=True), batch_size=batch_size, shuffle=False, num_workers=0)
+def train(batch_size = 1):
+    train_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=True, num_workers=0)
+    val_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=False, num_workers=0)
     model = TransformerHtr(97)
     criterion = LabelSmoothing(size=97, padding_idx=0, smoothing=0.1)
-    if cuda:
+    if cuda.is_available():
         model.cuda()
-        criterion.cuda()
     model_opt = NoamOpt(model.tgt_embed[0].d_model, 1, 2000,
             Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
     for epoch in range(1):
         model.train()
         run_epoch(train_dataloader, model, 
-              SimpleLossCompute(model.generator, criterion, model_opt), cuda=cuda)
+              SimpleLossCompute(model.generator, criterion, model_opt))
         model.eval()
         with no_grad():
             test_loss = run_epoch(val_dataloader, model, 
-                  SimpleLossCompute(model.generator, criterion, None), cuda=cuda)
+                  SimpleLossCompute(model.generator, criterion, None))
             print("test_loss", test_loss)
         save(model.state_dict(), '%08d_%f.pth'%(epoch, test_loss))
     return model

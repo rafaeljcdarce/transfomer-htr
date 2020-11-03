@@ -4,6 +4,7 @@ import copy
 from math import log
 from torch import ones, zeros, matmul, from_numpy, sin, cos, arange, exp
 from torchvision.models import resnet50
+from torch import cuda
 
 class EncoderDecoder(nn.Module):
     """
@@ -237,12 +238,12 @@ class VisualEmbeddings(nn.Module):
         x=self.fc( x.view(b, c, -1).permute(0, 2, 1) )
         return x
 
-def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8, dropout=0.1, cuda=False):
+def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8, dropout=0.1):
 
     c = copy.deepcopy
     resnet = resnet50(pretrained=True)
-    if cuda:
-        resnet.cuda()
+    if cuda.is_available():
+        reresnet.cuda()
     attn = MultiHeadedAttention(h, d_model)
     ff = PositionwiseFeedForward(d_model, d_ff, dropout)
     position = PositionalEncoding(d_model, dropout)
@@ -259,6 +260,6 @@ def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8,
     for p in model.parameters():
         if p.dim() > 1:
             nn.init.xavier_uniform_(p)
-    if cuda:
+    if cuda.is_available():
         model.cuda()
     return model

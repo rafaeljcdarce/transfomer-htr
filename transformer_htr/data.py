@@ -6,13 +6,14 @@ import numpy as np
 from torch import from_numpy
 from torch.autograd import Variable
 from .tool import subsequent_mask
+from torch import cuda
+
 class HtrDataset(Dataset):
-    def __init__(self, source='iam', pt='train', cuda=False):
+    def __init__(self, source='iam', pt='train'):
 
         #pt = ['train', 'valid', 'test']
         self.tokenizer = Tokenizer()
         self.dataset = dict()
-        self.cuda = cuda
         source = os.path.join(f"{source}.hdf5")
         with h5py.File(source, "r") as f:
             self.dataset['img'] = np.array(f[pt]['dt'])
@@ -38,7 +39,7 @@ class HtrDataset(Dataset):
         img= np.transpose(img, (2, 0, 1))
         img = from_numpy(img).float()
         label = self.tokenizer.encode(string)
-        if self.cuda:
+        if cuda.is_available():
             img=img.cuda()
             label=label.cuda()
         label_y = label[1:]
@@ -48,14 +49,13 @@ class HtrDataset(Dataset):
 
 class Batch:
     "Object for holding a batch of data with mask during training."
-    def __init__(self, imgs, trg_y, trg, pad=0, cuda=False):
+    def __init__(self, imgs, trg_y, trg, pad=0):
         self.src_mask = Variable(from_numpy(np.ones([imgs.size(0), 1, 560], dtype=np.bool)))
-        if cuda:
-            imgs.cuda()
-            trg.cuda()
-            trg_y.cuda()
-            self.src_mask.cuda()
-        self.cuda = cuda
+        if cuda.is_available():
+            imgs=imgs.cuda()
+            trg=trg.cuda()
+            trg_y=trg_y.cuda()
+            self.src_mask = self.src_mask.cuda()
         print('batch', type(imgs))
 
         self.src = Variable(imgs, requires_grad=False)
@@ -63,8 +63,8 @@ class Batch:
             self.trg = Variable(trg, requires_grad=False)
             self.trg_y = Variable(trg_y, requires_grad=False)
             self.trg_mask = self.make_std_mask(self.trg, pad)
-            if self.cuda:
-                self.trg_mask.cuda()
+            if cuda.is_available():
+                self.trg_mask=elf.trg_mask.cuda()
             self.ntokens = (self.trg_y != pad).data.sum()
 
     @staticmethod
