@@ -64,7 +64,7 @@ class Batch:
             self.trg_y = Variable(trg_y, requires_grad=False)
             self.trg_mask = self.make_std_mask(self.trg, pad)
             if cuda.is_available():
-                self.trg_mask=elf.trg_mask.cuda()
+                self.trg_mask= self.trg_mask.cuda()
             self.ntokens = (self.trg_y != pad).data.sum()
 
     @staticmethod
