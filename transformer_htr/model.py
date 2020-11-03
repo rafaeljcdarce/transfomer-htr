@@ -252,7 +252,7 @@ def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8,
         nn.Sequential(WordEmbeddings(d_model, tgt_vocab), c(position)),
         Generator(d_model, tgt_vocab))
     if share:    
-        model.generator.lut.weight = model.tgt_embed[0].lut.weight
+        model.generator.proj.weight = model.tgt_embed[0].lut.weight
 
     # This was important from their code. 
     # Initialize parameters with Glorot / fan_avg.
