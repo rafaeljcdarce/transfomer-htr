@@ -104,9 +104,9 @@ def run_epoch(dataloader, model, loss_compute):
     return total_loss / total_tokens
 
 
-def train(batch_size = 1):
-    train_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=True, num_workers=0)
-    val_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=False, num_workers=0)
+def train(train='iam', batch_size = 1):
+    train_dataloader = DataLoader(HtrDataset(train), batch_size=batch_size, shuffle=True, num_workers=0)
+    # val_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=False, num_workers=0)
     model = TransformerHtr(97)
     criterion = LabelSmoothing(size=97, padding_idx=0, smoothing=0.1)
     if cuda.is_available():
@@ -119,7 +119,7 @@ def train(batch_size = 1):
               SimpleLossCompute(model.generator, criterion, model_opt))
         model.eval()
         with no_grad():
-            test_loss = run_epoch(val_dataloader, model, 
+            test_loss = run_epoch(train_dataloader, model, 
                   SimpleLossCompute(model.generator, criterion, None))
             print("test_loss", test_loss)
         save(model.state_dict(), '%08d_%f.pth'%(epoch, test_loss))

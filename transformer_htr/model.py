@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import copy
-from math import log
+from math import log, sqrt
 from torch import ones, zeros, matmul, from_numpy, sin, cos, arange, exp
 from torchvision.models import resnet50
 from torch import cuda
@@ -137,8 +137,7 @@ def subsequent_mask(size):
 def attention(query, key, value, mask=None, dropout=None):
     "Compute 'Scaled Dot Product Attention'"
     d_k = query.size(-1)
-    scores = matmul(query, key.transpose(-2, -1)) \
-             / math.sqrt(d_k)
+    scores = matmul(query, key.transpose(-2, -1)) / sqrt(d_k)
     if mask is not None:
         scores = scores.masked_fill(mask == 0, -1e9)
     p_attn = F.softmax(scores, dim = -1)
@@ -197,7 +196,7 @@ class WordEmbeddings(nn.Module):
         self.d_model = d_model
 
     def forward(self, x):
-        return self.lut(x) * math.sqrt(self.d_model)
+        return self.lut(x) * sqrt(self.d_model)
 
 
 class PositionalEncoding(nn.Module):
