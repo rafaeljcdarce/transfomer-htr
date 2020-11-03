@@ -5,6 +5,7 @@ from math import log
 from torch import ones, zeros, matmul, from_numpy, sin, cos, arange, exp
 from torchvision.models import resnet50
 from torch import cuda
+from torch.autograd import Variable
 
 class EncoderDecoder(nn.Module):
     """
