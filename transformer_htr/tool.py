@@ -79,7 +79,6 @@ class Tokenizer():
         if isinstance(tokens, int):
           tokens = [tokens]
         for token in tokens:
-            token = token.item()
             try:
                 char = self.token2char[token]
             except KeyError:
