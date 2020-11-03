@@ -104,7 +104,7 @@ def run_epoch(dataloader, model, loss_compute):
     return total_loss / total_tokens
 
 
-def train(src='iam', batch_size = 1):
+def train(src='iam', batch_size = 1, epochs=1):
     train_dataloader = DataLoader(HtrDataset(source=src), batch_size=batch_size, shuffle=True, num_workers=0)
     # val_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=False, num_workers=0)
     model = TransformerHtr(97)
@@ -113,7 +113,7 @@ def train(src='iam', batch_size = 1):
         model.cuda()
     model_opt = NoamOpt(model.tgt_embed[0].d_model, 1, 2000,
             Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
-    for epoch in range(1):
+    for epoch in range(epochs):
         model.train()
         run_epoch(train_dataloader, model, 
               SimpleLossCompute(model.generator, criterion, model_opt))

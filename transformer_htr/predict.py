@@ -1,5 +1,7 @@
-from .tool import subsequent_mask
+from .tool import Tokenizer, subsequent_mask
 from torch import from_numpy, ones, max, cat
+from torch.autograd import Variable
+import numpy as np
 def greedy_decode(model, src, max_len=140, start_symbol=1):
     model.eval()
     tokenizer=Tokenizer()

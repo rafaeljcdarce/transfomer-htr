@@ -237,7 +237,7 @@ class VisualEmbeddings(nn.Module):
         x=self.fc( x.view(b, c, -1).permute(0, 2, 1) )
         return x
 
-def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8, dropout=0.1):
+def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8, dropout=0.1, share=False):
 
     c = copy.deepcopy
     resnet = resnet50(pretrained=True)
@@ -251,7 +251,9 @@ def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8,
         nn.Sequential(VisualEmbeddings(resnet, d_feature), c(position)),
         nn.Sequential(WordEmbeddings(d_model, tgt_vocab), c(position)),
         Generator(d_model, tgt_vocab))
-    
+    if share:    
+        model.generator.lut.weight = model.tgt_embed[0].lut.weight
+
     # This was important from their code. 
     # Initialize parameters with Glorot / fan_avg.
     for p in model.parameters():
@@ -259,4 +261,5 @@ def TransformerHtr(tgt_vocab, N=4, d_model=1024, d_ff=1024, d_feature=1024, h=8,
             nn.init.xavier_uniform_(p)
     if cuda.is_available():
         model.cuda()
+
     return model
