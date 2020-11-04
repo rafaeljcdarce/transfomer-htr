@@ -142,8 +142,6 @@ def preprocess_image(img):
                         erode_range=5,
                         dilate_range=3)
     img=normalization(img)
-    cv2.imshow("aug and norm", img)
-    cv2.waitKey(0)
     nw=new_size[0]
     a1 = int((WIDTH-nw)/2)
     a2= WIDTH-nw-a1
