@@ -36,7 +36,7 @@ class HtrDataset(Dataset):
         line: (image path, label string)
         '''            
         img, string = self.dataset['img'][index], self.dataset['lbl'][index]
-        img = preprocess_image(img, augment)
+        img = preprocess_image(img, self.augment)
         img= np.transpose(img, (2, 0, 1))
         img = from_numpy(img).float()
         label = self.tokenizer.encode(string)

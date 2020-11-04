@@ -105,7 +105,7 @@ def run_epoch(dataloader, model, loss_compute):
 
 
 def train(model=None, src='iam', batch_size = 1, epochs=1):
-    train_dataloader = DataLoader(HtrDataset(source=src), batch_size=batch_size, shuffle=True, num_workers=0)
+    train_dataloader = DataLoader(HtrDataset(source=src, augment=True), batch_size=batch_size, shuffle=True, num_workers=0)
     # val_dataloader = DataLoader(HtrDataset(), batch_size=batch_size, shuffle=False, num_workers=0)
     if model is None:
         model = TransformerHtr(97)
