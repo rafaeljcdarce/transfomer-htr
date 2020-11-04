@@ -51,7 +51,7 @@ class HtrDataset(Dataset):
 class Batch:
     "Object for holding a batch of data with mask during training."
     def __init__(self, imgs, trg_y, trg, pad=0):
-        self.src_mask = Variable(from_numpy(np.ones([imgs.size(0), 1, 560], dtype=np.bool)))
+        self.src_mask = Variable(from_numpy(np.ones([imgs.size(0), 1, 256], dtype=np.bool)))
         if cuda.is_available():
             imgs=imgs.cuda()
             trg=trg.cuda()
