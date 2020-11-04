@@ -148,6 +148,7 @@ def preprocess_image(img):
     pad1 = np.zeros((HEIGHT, a1), dtype=np.uint8)
     pad2 = np.zeros((HEIGHT, a2), dtype=np.uint8)
     img = np.concatenate((pad1, img, pad2), axis=1)
-    img = np.stack((img,)*3, axis=-1)
+    img = np.stack((img,)*3, axis=-1).T
+    return img
 
 
