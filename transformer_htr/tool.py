@@ -87,17 +87,32 @@ class Tokenizer():
                 string += char
         return string
 
-def resize_image(img):
+def preprocess_image(img):
+
     HEIGHT = 64
-    WIDTH = 2227
-    w, h = img.shape    
-    nw, nh = int(w * HEIGHT/h), HEIGHT
-    if nw < 10 : nw = 10
-    img = resize(img, (nw, nh))
+    WIDTH = 1024
+
+    img = np.asarray(img).T
+    h, w = img.shape
+    f = h / HEIGHT
+    new_size = (max(int(w / f), 1), HEIGHT)
+    img = cv2.resize(img, new_size)
+    img=augmentation(img,
+                        rotation_range=1.5,
+                        scale_range=0.05,
+                        height_shift_range=0.025,
+                        width_shift_range=0.05,
+                        erode_range=5,
+                        dilate_range=3)
+    img=normalization(img)
+    cv2.imshow("aug and norm", img)
+    cv2.waitKey(0)
+    nw=new_size[0]
     a1 = int((WIDTH-nw)/2)
     a2= WIDTH-nw-a1
-    pad1 = np.zeros((a1, HEIGHT), dtype=np.uint8)
-    pad2 = np.zeros((a2, HEIGHT), dtype=np.uint8)
-    img = np.concatenate((pad1, img, pad2), axis=0)
+    pad1 = np.zeros((HEIGHT, a1), dtype=np.uint8)
+    pad2 = np.zeros((HEIGHT, a2), dtype=np.uint8)
+    img = np.concatenate((pad1, img, pad2), axis=1)
     img = np.stack((img,)*3, axis=-1)
-    return img
+
+

@@ -1,5 +1,5 @@
 from torch.utils.data.dataset import Dataset
-from .tool import Tokenizer, resize_image
+from .tool import Tokenizer, preprocess_image
 import os
 import h5py
 import numpy as np
@@ -35,7 +35,7 @@ class HtrDataset(Dataset):
         line: (image path, label string)
         '''            
         img, string = self.dataset['img'][index], self.dataset['lbl'][index]
-        img = resize_image(img)
+        img = preprocess_image(img)
         img= np.transpose(img, (2, 0, 1))
         img = from_numpy(img).float()
         label = self.tokenizer.encode(string)
@@ -44,17 +44,22 @@ class HtrDataset(Dataset):
             label=label.cuda()
         label_y = label[1:]
         label = label[:-1]
+
         return img, label_y, label
 
 class Batch:
     "Object for holding a batch of data with mask during training."
-    def __init__(self, imgs, trg_y, trg, pad=0):
+    def __init__(self, imgs, trg_y, trg, pad=0, augment=True):
         self.src_mask = Variable(from_numpy(np.ones([imgs.size(0), 1, 560], dtype=np.bool)))
         if cuda.is_available():
             imgs=imgs.cuda()
             trg=trg.cuda()
             trg_y=trg_y.cuda()
             self.src_mask = self.src_mask.cuda()
+        
+        # randomly augment images
+        if augment:
+            imgs=normalize(augment(imgs))
 
         self.src = Variable(imgs, requires_grad=False)
         if trg is not None:
