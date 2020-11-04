@@ -124,7 +124,7 @@ def normalization(img):
     img = img / 255
     return img
 
-def preprocess_image(img):
+def preprocess_image(img, augment=False):
 
     HEIGHT = 64
     WIDTH = 1024
@@ -134,14 +134,15 @@ def preprocess_image(img):
     f = h / HEIGHT
     new_size = (max(int(w / f), 1), HEIGHT)
     img = cv2.resize(img, new_size)
-    img=augmentation(img,
-                        rotation_range=1.5,
-                        scale_range=0.05,
-                        height_shift_range=0.025,
-                        width_shift_range=0.05,
-                        erode_range=5,
-                        dilate_range=3)
-    img=normalization(img)
+    if augment:
+        img=augmentation(img,
+                            rotation_range=1.5,
+                            scale_range=0.05,
+                            height_shift_range=0.025,
+                            width_shift_range=0.05,
+                            erode_range=5,
+                            dilate_range=3)
+        img=normalization(img)
     nw=new_size[0]
     a1 = int((WIDTH-nw)/2)
     a2= WIDTH-nw-a1

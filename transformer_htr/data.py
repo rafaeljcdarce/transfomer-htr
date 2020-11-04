@@ -9,11 +9,12 @@ from .tool import subsequent_mask
 from torch import cuda
 
 class HtrDataset(Dataset):
-    def __init__(self, source='iam', pt='train'):
+    def __init__(self, source='iam', pt='train', augment=False):
 
         #pt = ['train', 'valid', 'test']
         self.tokenizer = Tokenizer()
         self.dataset = dict()
+        self.augment = augment
         source = os.path.join(f"{source}.hdf5")
         with h5py.File(source, "r") as f:
             self.dataset['img'] = np.array(f[pt]['dt'])
@@ -35,7 +36,7 @@ class HtrDataset(Dataset):
         line: (image path, label string)
         '''            
         img, string = self.dataset['img'][index], self.dataset['lbl'][index]
-        img = preprocess_image(img)
+        img = preprocess_image(img, augment)
         img= np.transpose(img, (2, 0, 1))
         img = from_numpy(img).float()
         label = self.tokenizer.encode(string)
@@ -49,7 +50,7 @@ class HtrDataset(Dataset):
 
 class Batch:
     "Object for holding a batch of data with mask during training."
-    def __init__(self, imgs, trg_y, trg, pad=0, augment=True):
+    def __init__(self, imgs, trg_y, trg, pad=0):
         self.src_mask = Variable(from_numpy(np.ones([imgs.size(0), 1, 560], dtype=np.bool)))
         if cuda.is_available():
             imgs=imgs.cuda()
@@ -57,10 +58,6 @@ class Batch:
             trg_y=trg_y.cuda()
             self.src_mask = self.src_mask.cuda()
         
-        # randomly augment images
-        if augment:
-            imgs=normalize(augment(imgs))
-
         self.src = Variable(imgs, requires_grad=False)
         if trg is not None:
             self.trg = Variable(trg, requires_grad=False)
