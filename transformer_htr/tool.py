@@ -3,6 +3,7 @@ import editdistance
 import numpy as np
 from torch import from_numpy
 from skimage.transform import resize
+import cv2
 
 def subsequent_mask(size):
     "Mask out subsequent positions."
